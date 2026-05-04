@@ -1,0 +1,24 @@
+METADATA
+DBC,STAN,TOK,POB,CHP,A,UTM_X,UTM_Y,PCR,SOUV
+
+109000,Vyšší Brod,Vltava,CB,1-06-01-1213,991.62,448853.23,5386058.63,1980/11,A
+
+DBC...databázové číslo
+STAN...název vodoměrné stanice (profilu)
+TOK...název toku
+POB...pobočka ČHMÚ spravující stanici
+CHP...číslo hydrologického pořadí
+A...plocha povodí ke stanici v km2
+UTM_X...x-ová souřadnice polohy stanice v systému WGS 1984 UTM Zone 33N
+UTM_Y...y-ová souřadnice polohy stanice v systému WGS 1984 UTM Zone 33N
+PCR...počátek časové řady (rok/měsíc)
+SOUV...souvislá (nepřerušená) řada v databázi ano (A) / ne (N)
+
+DATOVÝ SOUBOR
+Jednotlivé sloupce postupně obsahují:
+S1...databázové číslo
+S2...označení typu dat
+S3...rok
+S4...měsíc
+S5...den
+S6...průměrný denní průtok (m3/s)
