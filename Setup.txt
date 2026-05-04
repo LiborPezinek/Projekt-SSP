@@ -1,0 +1,3 @@
+Nastavení virtual environment: 'python -m venv venv'
+
+Instalace potřebných závislostí: 'pip install -r requirements.txt'
