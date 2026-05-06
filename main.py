@@ -3,12 +3,17 @@
 ## 	Data: Průtoková data ze stanice Vyšší Brod, řeka Vltava, v letech 1981-2025, získaná z databáze ČHMÚ (Český hydrometeorologický ústav)
 ##  Odkaz na data: https://isvs.chmi.cz/ords/f?p=11002:2:11142408395097:::RP,2:P2_SEQ:%5C116%5C
 
-import numpy as np
-import matplotlib.pyplot as plt
+from utils.visualisation import VisualiseData, LoadCsvData
 
 
-def main():
-	print("Hello, world!")
+def main() -> None:
+	# Load data and visualise
+	time, values = LoadCsvData("data/QD_109000_Data.csv")
+	VisualiseData(time, values)
+	
+	# Plot ACF
+	
+
 
 
 if __name__ == "__main__":
