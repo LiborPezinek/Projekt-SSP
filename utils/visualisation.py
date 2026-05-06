@@ -1,3 +1,5 @@
+from time import time
+
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -20,7 +22,7 @@ def LoadCsvData(csvFilePath = None) -> tuple[pd.Series, pd.Series]:
 
 	return time, values
 
-def VisualiseData(time, values) -> None:
+def Visualise(time, values) -> None:
 	plt.figure(figsize=(10, 5))
 	plt.plot(time, values)
 	plt.xlabel("Datum")
