@@ -13,27 +13,40 @@ import utils
 def main() -> None:
 	time, values = utils.LoadCsvData("data/QD_109000_Data.csv")
 
-	# Visualize original data
+	# Log-transform the data to stabilize variance
+	valuesLog = np.log(values)
+
+	# Seasonally difference the log-transformed data to remove seasonality
+	valuesDiffSeasonal = valuesLog.diff(365).dropna()
+
+	# Calculate the trend using a rolling mean with a window of 365 days (1 year)
+	trend = valuesLog.rolling(window=365).mean().dropna()
+
+
+	# # Visualize original data
 	# utils.VisualiseData(time, values, ylabel = "Průtok (m³/s)", title = "Průtoková data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 	
-	# Calculate and plot autocovariance function
-	# utils.CalcAndPlotAutocovariance(time, values)
+	# # Calculate and plot autocovariance function
+	# utils.CalcAndPlotAutocovariance(time, values, title = "Autocovarianční funkce pro průtoková data")
 
-	# Calculate and plot rolling variance - to know whether to transform or not
+	# # Calculate and plot rolling variance - to know whether to transform or not
 	# utils.CalcAndPlotRollingVariance(time, values, title = "Klouzavý rozptyl průtokových dat")
 
-	# Log transform and plot
-	valuesLog = np.log(values)
+	# # Plot log transformed data
 	# utils.VisualiseData(time, valuesLog, ylabel = "Logaritmus průtoku (log(m³/s))", title = "Transformovaná data (logaritmus) ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 
-	# Re-calculate and plot rolling variance for transformed data
+	# # Re-calculate and plot rolling variance for transformed data
 	# utils.CalcAndPlotRollingVariance(time, valuesLog, title = "Klouzavý rozptyl logaritmovaných průtokových dat")
 
-	# show trend
-	trend = valuesLog.rolling(window=730).mean()
-	utils.VisualiseData(time, trend, ylabel = "Trend (log(m³/s))", title = "Trend logaritmovaných průtokových dat ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
+	# # Show trend
+	# utils.VisualiseData(time[365:], trend, ylabel = "Trend (log(m³/s))", title = "Trend logaritmovaných průtokových dat ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 
+	# # Plot seasonally differenced data
+	utils.VisualiseData(time[365:], valuesDiffSeasonal, ylabel = "Sezónně diferencovaná logaritmovaná průtoková data (log(m³/s))", title = "Sezónně diferencovaná data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 	
+	# # Calculate and plot autocovariance function for seasonally differenced data
+	utils.CalcAndPlotAutocovariance(time[365:], valuesDiffSeasonal, title = "Autocovarianční funkce pro sezónně diferencovaná data")
+
 
 
 if __name__ == "__main__":

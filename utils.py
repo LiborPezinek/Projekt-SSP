@@ -24,7 +24,6 @@ def LoadCsvData(csvFilePath = None) -> tuple[pd.Series, pd.Series]:
 	return time, values
 
 def VisualiseData(time, values, ylabel, title) -> None:
-	plt.figure(figsize=(10, 5))
 	plt.plot(time, values)
 	plt.xlabel("Datum")
 	plt.ylabel(ylabel)
@@ -33,13 +32,13 @@ def VisualiseData(time, values, ylabel, title) -> None:
 	plt.tight_layout()
 	plt.show()
 
-def CalcAndPlotAutocovariance(time, values) -> None:
+def CalcAndPlotAutocovariance(time, values, title) -> None:
 	acvf = acovf(values, fft=True)
 	lags = time[:len(acvf[:5600])]
 	plt.stem(lags, acvf[:5600])
 	plt.xlabel("Lag (days)")
 	plt.ylabel("Autocovariance")
-	plt.title("Autocovarianční funkce pro průtoková data")
+	plt.title(title)
 	plt.show()
 
 def CalcAndPlotRollingVariance(time, values, title) -> None:
