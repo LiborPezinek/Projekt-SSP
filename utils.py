@@ -32,13 +32,32 @@ def VisualiseData(time, values, ylabel, title) -> None:
 	plt.tight_layout()
 	plt.show()
 
-def CalcAndPlotAutocovariance(time, values, title) -> None:
+def CalcAndPlotACVF(time, values, title) -> None:
 	acvf = acovf(values, fft=True)
-	lags = time[:len(acvf[:5600])]
-	plt.stem(lags, acvf[:5600])
+	lags = time[:len(acvf)]
+	plt.stem(lags, acvf)
 	plt.xlabel("Lag (days)")
 	plt.ylabel("Autocovariance")
 	plt.title(title)
+	plt.show()
+
+def CalcAndPlotACVFwithPeriod(time, values, period, title) -> None:
+	acvf = acovf(values, fft=True)
+	lags = time[:len(acvf)]
+	plt.stem(lags, acvf)
+	plt.xlabel("Lag (days)")
+	plt.ylabel("Autocovariance")
+	plt.title(title)
+	for idx, day in enumerate(pd.date_range(start=lags.iloc[3], end=lags.iloc[-1], freq=f"{period}D")):		# start at 3.1. to compensate for leap years
+		if idx == 0: continue  # Skip the first vertical line at lag 0
+		plt.axvline(
+			x=day,
+			color="red",
+			linestyle="--",
+			alpha=0.4,
+			label=f"Every {period} days" if idx == 0 else None,
+		)
+	plt.legend()
 	plt.show()
 
 def CalcAndPlotRollingVariance(time, values, title) -> None:
