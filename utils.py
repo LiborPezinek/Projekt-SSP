@@ -2,6 +2,7 @@ from time import time
 
 import matplotlib.pyplot as plt
 import pandas as pd
+from statsmodels.tsa.stattools import acovf
 
 
 def LoadCsvData(csvFilePath = None) -> tuple[pd.Series, pd.Series]:
@@ -22,12 +23,29 @@ def LoadCsvData(csvFilePath = None) -> tuple[pd.Series, pd.Series]:
 
 	return time, values
 
-def Visualise(time, values) -> None:
+def Visualise(time, values, ylabel, title) -> None:
 	plt.figure(figsize=(10, 5))
 	plt.plot(time, values)
 	plt.xlabel("Datum")
-	plt.ylabel("Průtok (m³/s)")
-	plt.title("Průtoková data ze stanice Vyšší Brod, řeka Vltava (1981-2025)")
+	plt.ylabel(ylabel)
+	plt.title(title)
 	plt.grid(True)
 	plt.tight_layout()
+	plt.show()
+
+def PlotAutocovariance(time, values) -> None:
+	acvf = acovf(values, fft=True)
+	lags = time[:len(acvf[:5600])]
+	plt.stem(lags, acvf[:5600])
+	plt.xlabel("Lag (days)")
+	plt.ylabel("Autocovariance")
+	plt.title("Autocovarianční funkce pro průtoková data")
+	plt.show()
+
+def PlotRollingVariance(time, values, title) -> None:
+	rollingVar = values.rolling(window=365).var()
+	plt.plot(time, rollingVar)
+	plt.title(title)
+	plt.xlabel("Time (days)")
+	plt.ylabel("Variance")
 	plt.show()
