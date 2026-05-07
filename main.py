@@ -11,21 +11,27 @@ import utils
 
 
 def main() -> None:
-	# Load data and visualise
 	time, values = utils.LoadCsvData("data/QD_109000_Data.csv")
-	utils.Visualise(time, values, ylabel = "Průtok (m³/s)", title = "Průtoková data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
+
+	# Visualize original data
+	# utils.VisualiseData(time, values, ylabel = "Průtok (m³/s)", title = "Průtoková data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 	
 	# Calculate and plot autocovariance function
-	utils.PlotAutocovariance(time, values)
+	# utils.CalcAndPlotAutocovariance(time, values)
 
 	# Calculate and plot rolling variance - to know whether to transform or not
-	utils.PlotRollingVariance(time, values, title = "Klouzavý rozptyl průtokových dat")
+	# utils.CalcAndPlotRollingVariance(time, values, title = "Klouzavý rozptyl průtokových dat")
 
 	# Log transform and plot
 	valuesLog = np.log(values)
-	utils.Visualise(time, valuesLog, ylabel = "Logaritmus průtoku (log(m³/s))", title = "Transformovaná data (logaritmus) ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
+	# utils.VisualiseData(time, valuesLog, ylabel = "Logaritmus průtoku (log(m³/s))", title = "Transformovaná data (logaritmus) ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 
-	utils.PlotRollingVariance(time, valuesLog, title = "Klouzavý rozptyl logaritmovaných průtokových dat")
+	# Re-calculate and plot rolling variance for transformed data
+	# utils.CalcAndPlotRollingVariance(time, valuesLog, title = "Klouzavý rozptyl logaritmovaných průtokových dat")
+
+	# show trend
+	trend = valuesLog.rolling(window=730).mean()
+	utils.VisualiseData(time, trend, ylabel = "Trend (log(m³/s))", title = "Trend logaritmovaných průtokových dat ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 
 	
 
