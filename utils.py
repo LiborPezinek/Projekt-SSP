@@ -1,8 +1,10 @@
 from time import time
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 from statsmodels.tsa.stattools import acovf
+from scipy.signal import periodogram
 
 
 def LoadCsvData(csvFilePath = None) -> tuple[pd.Series, pd.Series]:
@@ -35,7 +37,13 @@ def VisualiseData(time, values, ylabel, title) -> None:
 def CalcAndPlotACVF(time, values, title) -> None:
 	acvf = acovf(values, fft=True)
 	lags = time[:len(acvf)]
-	plt.stem(lags, acvf)
+
+	# Plot positive and negative ACVF values with different colors.
+	acvf_pos = np.where(acvf >= 0, acvf, np.nan)
+	acvf_neg = np.where(acvf < 0, acvf, np.nan)
+	plt.stem(lags, acvf_pos, linefmt="tab:blue", markerfmt="bo", basefmt="k-", label="ACVF >= 0")
+	plt.stem(lags, acvf_neg, linefmt="tab:orange", markerfmt="o", basefmt=" ", label="ACVF < 0")
+
 	plt.xlabel("Lag (days)")
 	plt.ylabel("Autocovariance")
 	plt.title(title)
@@ -44,7 +52,13 @@ def CalcAndPlotACVF(time, values, title) -> None:
 def CalcAndPlotACVFwithPeriod(time, values, period, title) -> None:
 	acvf = acovf(values, fft=True)
 	lags = time[:len(acvf)]
-	plt.stem(lags, acvf)
+
+	# Plot positive and negative ACVF values with different colors.
+	acvf_pos = np.where(acvf >= 0, acvf, np.nan)
+	acvf_neg = np.where(acvf < 0, acvf, np.nan)
+	plt.stem(lags, acvf_pos, linefmt="tab:blue", markerfmt="bo", basefmt="k-", label="ACVF >= 0")
+	plt.stem(lags, acvf_neg, linefmt="tab:orange", markerfmt="o", basefmt=" ", label="ACVF < 0")
+
 	plt.xlabel("Lag (days)")
 	plt.ylabel("Autocovariance")
 	plt.title(title)
@@ -67,3 +81,15 @@ def CalcAndPlotRollingVariance(time, values, title) -> None:
 	plt.xlabel("Time (days)")
 	plt.ylabel("Variance")
 	plt.show()
+
+def CalcAndPlotPeriodogram(values, title) -> None:
+	freqs, power = periodogram(values)
+	periods = 1 / freqs
+
+	plt.plot(periods, power)
+	plt.xlabel("Period (days)")
+	plt.ylabel("Power")
+	plt.title(title)
+	plt.show()
+
+	return periods, power

@@ -16,11 +16,11 @@ def main() -> None:
 	# Log-transform the data to stabilize variance
 	valuesLog = np.log(values)
 
-	# Seasonally difference the log-transformed data to remove seasonality
-	valuesDiffSeasonal = valuesLog.diff().dropna()
+	# Difference the data to detrend (and also remove seasonality)
+	valuesDetrended = values.diff().dropna()
 
 	# Calculate the trend using a rolling mean with a window of 365 days (1 year)
-	trend = valuesLog.rolling(window=365).mean().dropna()
+	trend = valuesLog.rolling(window=365).mean().dropna()	# just for visualization purposes, not used in further analysis
 
 
 	# # Visualize original data
@@ -41,14 +41,16 @@ def main() -> None:
 	# # Show trend
 	# utils.VisualiseData(time[365:], trend, ylabel = "Trend (log(m³/s))", title = "Trend logaritmovaných průtokových dat ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 
-	# # Plot seasonally differenced data
-	# utils.VisualiseData(time[1:], valuesDiffSeasonal, ylabel = "Sezónně diferencovaná logaritmovaná průtoková data (log(m³/s))", title = "Sezónně diferencovaná data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
+	# # Plot detrended data
+	# utils.VisualiseData(time[1:], valuesDetrended, ylabel = "Diferencovaná průtoková data (log(m³/s))", title = "Sezónně diferencovaná data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 	
 	# # Calculate and plot autocovariance function for seasonally differenced data
-	# utils.CalcAndPlotACVF(time[1:], valuesDiffSeasonal, title = "Autocovarianční funkce pro sezónně diferencovaná data")
+	# utils.CalcAndPlotACVF(time[1:], valuesDetrended, title = "Autocovarianční funkce pro diferencovaná data")
 
 	# # # Calculate and plot autocovariance function with period annotation
-	# utils.CalcAndPlotACVFwithPeriod(time, values, period = 365, title = "Autocovarianční funkce pro sezónně diferencovaná data s anotací periody")
+	periods, power = utils.CalcAndPlotPeriodogram(values, title = "Periodogram průtokových dat ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
+	peakPeriod = periods[np.argmax(power)]
+	print(peakPeriod)	# 365.25 - confirming the yearly seasonality
 
 
 
