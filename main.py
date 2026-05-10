@@ -19,14 +19,10 @@ def main() -> None:
 	time, values = utils.LoadCsvData("data/QD_109000_Data.csv")
 
 	## Předpočítané operace na datech, abychom mohli volat pouze příslušný blok kódu pro daný úkol
-	# transform the data using Box-Cox transformation to stabilize variance
-	valuesBoxCox, lam = boxcox(values)
-
-	# Difference the data to detrend (and also remove seasonality)
-	valuesDetrended = valuesBoxCox.diff().dropna()
-
-	# Calculate the trend using a rolling mean with a window of 365 days (1 year)
-	trend = valuesBoxCox.rolling(window=365).mean().dropna()
+	valuesBoxCox, lam = boxcox(values)						  		# Transform the data using Box-Cox transformation to stabilize variance
+	valuesBoxCox = pd.Series(valuesBoxCox, index=values.index) # Convert back to pandas Series for easier handling
+	valuesDetrended = valuesBoxCox.diff().dropna() 			  		# Difference the data to detrend (and also remove seasonality)
+	trend = valuesBoxCox.rolling(window=365).mean().dropna()  		# Calculate the trend using a rolling mean with a window of 365 days (1 year)
 
 	# 2:  Data vykreslete, posuďte autokovarianční funkci.
 	# 3:  Ověřte, zda je třeba provést transformaci stabilizující rozptyl a případně ji proveďte.  
@@ -54,7 +50,6 @@ def main() -> None:
 		# Box-Cox transformation to find optimal lambda for variance stabilization
 		# valuesBoxCox, lam = boxcox(values)	# g(x) =  1 - 1/x
 		print("Optimal lambda for Box-Cox transformation:", lam)
-		valuesBoxCox = pd.Series(valuesBoxCox, index=values.index)		# Convert back to pandas Series for easier handling
 
 		# Plot log transformed data
 		utils.VisualiseData(time, valuesBoxCox, ylabel = "Průtok", title = "Transformovaná data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
