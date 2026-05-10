@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from statsmodels.tsa.stattools import acovf
 from scipy.signal import periodogram
+from scipy.special import inv_boxcox
 import scipy.stats as stats
 import pmdarima as pm
 
@@ -160,3 +161,37 @@ def PlotForecastARMA(valuesDetrended, forecast, conf_int, title) -> None:
 	plt.grid(True, alpha=0.5)
 	plt.tight_layout()
 	plt.show()
+
+def OrigDataPlotForecastARMA(time, values, preDiffLastVal, forecast, conf_int, lam, title) -> None:
+	predictionIndices = np.arange(len(values) + 1, len(values) + len(forecast) + 1)
+
+	dediffForecast = np.concatenate([[preDiffLastVal], preDiffLastVal + np.cumsum(forecast)])
+	dediffLowerBound = np.concatenate([[preDiffLastVal + conf_int[0, 0]], preDiffLastVal + np.cumsum(conf_int[:, 0])])
+	dediffUpperBound = np.concatenate([[preDiffLastVal + conf_int[0, 1]], preDiffLastVal + np.cumsum(conf_int[:, 1])])
+
+	forecastOrig = inv_boxcox(dediffForecast, lam)
+	lowerBound = inv_boxcox(dediffLowerBound, lam)
+	upperBound = inv_boxcox(dediffUpperBound, lam)
+
+	plt.figure(figsize=(12, 5))
+	plt.axhline(0, color="black", linewidth=0.8)
+	plt.plot(values, label="Observed Data")
+	plt.plot([predictionIndices[0] - 1, predictionIndices[0]], 
+             [values.values[-1], forecastOrig[0]], color="red")
+	plt.plot(predictionIndices, forecastOrig[:len(predictionIndices)], color="red", label="Prediction")
+
+	plt.fill_between(predictionIndices,
+                     lowerBound[:len(predictionIndices)],   # lower bound
+                     upperBound[:len(predictionIndices)],   # upper bound
+                     color="red", alpha=0.2, label="95% Confidence Interval")
+
+	plt.title(title)
+	plt.xlabel("Time [days]")
+	plt.ylabel("")
+	plt.legend()
+	plt.grid(True, alpha=0.5)
+	plt.tight_layout()
+	plt.show()
+
+
+

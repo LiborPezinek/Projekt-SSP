@@ -76,7 +76,7 @@ def main() -> None:
 		# Plot detrended data
 		utils.VisualiseData(time[1:], valuesDetrended, ylabel = "Diferencovaná průtoková data", title = "Diferencovaná data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 	
-		# Calculate and plot autocovariance function for seasonally differenced data
+		# Calculate and plot autocovariance function for differenced data
 		utils.CalcAndPlotACVF(time[1:], valuesDetrended, title = "Autocovarianční funkce pro diferencovaná data")
 		
 		## Diferenciace lepší výsledky oproti odečtení moving average
@@ -164,7 +164,6 @@ def main() -> None:
 
 		# Plot the forecast
 		utils.PlotForecastARMA(valuesDetrendedSliced, forecast, conf_int, title = "Predikce ARMA(2,1) pro diferencovaná data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
-		utils.OrigDataPlotForecastARMA(time, valuesTransformed, forecast, conf_int, title = "Predikce ARMA(2,1) pro transformovaná data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 
 
 if __name__ == "__main__":
