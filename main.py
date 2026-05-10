@@ -7,11 +7,13 @@
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from scipy.stats import boxcox
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.stats.diagnostic import acorr_ljungbox, lilliefors
 from statsmodels.stats.stattools import jarque_bera
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
 import utils
 
@@ -82,11 +84,13 @@ def main() -> None:
 	# 5:  Identifikujte periodu sezónní složky (z podstaty dat, ověřte periodogramem)
 	if task == 5:
 		# Calculate and plot periodogram to identify seasonality
-		periods, power = utils.CalcAndPlotPeriodogram(valuesTransformed[365:], title = "Periodogram průtokových dat ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
+		periods, power = utils.CalcAndPlotPeriodogram(values[365:], title = "Periodogram průtokových dat ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 		peakPeriod = periods[np.argmax(power)]
 		print(f"Peak period: {peakPeriod}")	# 365.25 - confirming the yearly seasonality
 
-		## Diferencovaná data neukazují smysluplnou periodu, proto periodogram na pouze stabilizovaných datech (popř. na původních)
+		utils.CalcAndPlotACVFwithPeriod(time, valuesTransformed, period=peakPeriod, title = "Autocovarianční funkce s vyznačenou periodou 365 dní")
+
+		## Diferencovaná data neukazují smysluplnou periodu, proto periodogram na původních datech.
 
 	# 6:  Odhadněte trendovou a sezónní složku
 	if task == 6:
@@ -129,6 +133,20 @@ def main() -> None:
 
 		## Residua nejsou ani IID, ani normální, QQ graf reziduí ukazuje přibližnou shodu s normálním rozdělením, 
 		# největší odchylky se objevují v krajních kvantilech - pravděpodobně vlivem extrémních průtokových hodnot (např. povodně).
+
+	# 8:  Vykreslete autokorelační funkci a parciální autokorelační funkci reziduí a pokuste se určit vhodný ARMA model
+	if task == 8:
+		residuals = seasonalDecompose.resid.dropna()
+
+		plot_acf(residuals)
+		plt.title("Autokorelační funkce residuí")
+		plot_pacf(residuals)
+		plt.title("Parciální autokorelační funkce residuí")
+		plt.show()
+
+		model = utils.FindOptimalArma(valuesDetrended)
+		print(model.summary())
+
 
 if __name__ == "__main__":
 	main()

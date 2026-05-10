@@ -4,6 +4,7 @@ import pandas as pd
 from statsmodels.tsa.stattools import acovf
 from scipy.signal import periodogram
 import scipy.stats as stats
+import pmdarima as pm
 
 
 
@@ -112,3 +113,16 @@ def PlotQQ(values, title) -> None:
 	stats.probplot(values, dist="norm", plot=ax)
 	ax.set_title(title)
 	plt.show()
+
+def FindOptimalArma(valuesDetrended):
+		model = pm.auto_arima(
+        valuesDetrended,
+        d=0,              # force d=0 since series is centered around zero after detrending
+        max_p=365, max_q=365,  # 1 period
+        information_criterion="aic",
+        stepwise=True,    # less exhaustive search
+        seasonal=True, 
+        m=365,             # period 365 days
+        trace=True        # prints models being tested
+		)
+		return model
