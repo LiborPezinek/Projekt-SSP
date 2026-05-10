@@ -47,26 +47,16 @@ def main() -> None:
 
 	# 3:  Ověřte, zda je třeba provést transformaci stabilizující rozptyl a případně ji proveďte.  
 	if task == 3:
-		# H0: The variances of the two groups are equal (no need for transformation)
-		# H1: The variances of the two groups are not equal (transformation may be needed)
-		utils.LeveneTest(values[:len(values)//2], values[len(values)//2:])		# Test for equal variances between first and second half of the data
-
 		# Calculate and plot rolling variance - to know whether to transform or not
 		utils.CalcAndPlotRollingVariance(time, values, title = "Klouzavý rozptyl průtokových dat")
 
 		# Box-Cox transformation to find optimal lambda for variance stabilization
 		valuesBoxCox, lam = boxcox(values)	# g(x) =  1 - 1/x
 		print("Optimal lambda for Box-Cox transformation:", lam)
-		valuesBoxCox = pd.Series(valuesBoxCox, index=values.index)		# Convert back to pandas Series for easier handling		
-
-		# Log-transform the data to stabilize variance
-		# valuesLog = np.log(values)
+		valuesBoxCox = pd.Series(valuesBoxCox, index=values.index)		# Convert back to pandas Series for easier handling
 
 		# Plot log transformed data
 		utils.VisualiseData(time, valuesBoxCox, ylabel = "Průtok", title = "Transformovaná data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
-
-		# Re-test for equal variances after transformation
-		utils.LeveneTest(valuesBoxCox[:len(valuesBoxCox)//2], valuesBoxCox[len(valuesBoxCox)//2:])
 
 		# Re-calculate and plot rolling variance for transformed data
 		utils.CalcAndPlotRollingVariance(time, valuesBoxCox, title = "Klouzavý rozptyl logaritmovaných průtokových dat")
