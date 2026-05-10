@@ -38,7 +38,7 @@ def VisualiseData(time, values, ylabel, title) -> None:
 def VisualiseDataAndTrend(time, values, trend, ylabel, title) -> None:
 		fig, ax = plt.subplots(figsize=(12, 6))
 		ax.plot(time, values, label="Transformovaná data", linewidth=0.8)
-		ax.plot(time[364:], trend, label="Trend (365denní klouzavý průměr)", linewidth=2.0)
+		ax.plot(time[364:len(time)-365], trend[:len(trend)-365], label="Trend (365denní klouzavý průměr)", linewidth=2.0)
 		ax.set_xlabel("Datum")
 		ax.set_ylabel(ylabel)
 		ax.set_title(title)
@@ -115,14 +115,48 @@ def PlotQQ(values, title) -> None:
 	plt.show()
 
 def FindOptimalArma(valuesDetrended):
-		model = pm.auto_arima(
-        valuesDetrended,
-        d=0,              # force d=0 since series is centered around zero after detrending
-        max_p=365, max_q=365,  # 1 period
-        information_criterion="aic",
-        stepwise=True,    # less exhaustive search
-        seasonal=True, 
-        m=365,             # period 365 days
-        trace=True        # prints models being tested
-		)
-		return model
+	## Příliž velký dataset a perioda - hledá optimální model velmi dlouho, proto omezení na ARMA bez sezónní složky.
+    # model = pm.auto_arima(
+    #     valuesDetrended,
+    #     d=0,               # force d=0 since series is stationary
+    #     max_p=5, max_q=5,  # ARMA up to order 5
+	# 	max_P=5, max_Q=5,  # seasonal ARMA up to order 2
+    #     information_criterion="aic",
+    #     stepwise=True,    # less exhaustive search
+    #     seasonal=True, 
+    #     m=365,             # period 365 days
+    #     trace=True        # prints models being tested
+    # )
+
+	model = pm.auto_arima(
+    	valuesDetrended,
+    	start_p=0, max_p=5,
+    	start_q=0, max_q=5,
+    	seasonal=False,   # ARMA, information criterion will be calculated on non-seasonal model
+    	information_criterion="aic",
+    	stepwise=True,    # rychlejší hledání
+    	trace=True        # vypíše kritéria modelů
+	)
+	return model
+
+def PlotForecastARMA(valuesDetrended, forecast, conf_int, title) -> None:
+	predictionIndices = np.arange(len(valuesDetrended) + 1, len(valuesDetrended) + len(forecast) + 1)
+	plt.figure(figsize=(12, 5))
+	plt.axhline(0, color="black", linewidth=0.8)
+	plt.plot(valuesDetrended, label="Observed Data")
+	plt.plot([predictionIndices[0] - 1, predictionIndices[0]], 
+             [valuesDetrended.values[-1], forecast.values[0]], color="red")
+	plt.plot(predictionIndices, forecast, color="red", label="Prediction")
+
+	plt.fill_between(predictionIndices,
+                     conf_int[:, 0],   # lower bound
+                     conf_int[:, 1],   # upper bound
+                     color="red", alpha=0.2, label="95% Confidence Interval")
+
+	plt.title(title)
+	plt.xlabel("Time [days]")
+	plt.ylabel("")
+	plt.legend()
+	plt.grid(True, alpha=0.5)
+	plt.tight_layout()
+	plt.show()

@@ -94,7 +94,7 @@ def main() -> None:
 
 	# 6:  Odhadněte trendovou a sezónní složku
 	if task == 6:
-		# Decompose Xt = mt + st + Yt 
+		# Decompose Xt = mt + st + Yt
 		# seasonalDecompose = seasonal_decompose(valuesTransformedSliced, model='additive', period=365)
 
 		# Plot the decomposed components
@@ -135,7 +135,7 @@ def main() -> None:
 		# největší odchylky se objevují v krajních kvantilech - pravděpodobně vlivem extrémních průtokových hodnot (např. povodně).
 
 	# 8:  Vykreslete autokorelační funkci a parciální autokorelační funkci reziduí a pokuste se určit vhodný ARMA model
-	if task == 8:
+	if task == 8 or task == 9:
 		residuals = seasonalDecompose.resid.dropna()
 
 		plot_acf(residuals)
@@ -144,8 +144,27 @@ def main() -> None:
 		plt.title("Parciální autokorelační funkce residuí")
 		plt.show()
 
-		model = utils.FindOptimalArma(valuesDetrended)
+
+		valuesDetrendedSliced = valuesDetrended[:len(valuesDetrended)-364]
+		model = utils.FindOptimalArma(valuesDetrendedSliced)
 		print(model.summary())
+
+		## Z výpočetních důvodů omezení na ARMA bez sezónní složky, nalezený optimální model ARMA(2,1) s AIC = -35683.981
+		## ACF klesá pomalu, PACF má významné peaky pro lagy 1 a 2, což by napovídalo model AR(2).
+		## PACF má ale dále ještě malé, ale významné peaky. To naznačuje, že bude vhodnější model ARMA(2,1) - což potvrzuje i výsledek z auto_arima.
+		## Koeficienty modelu ARMA(2,1) jsou všechny významné.
+		## Rezidua modelu jsou IID (prob(lb) > 0.05), ale nejsou normální (Jarque-Bera test p-value < 0.05), jsou heteroskedastická (test p-value < 0.05)
+		## šikmost cca 0 - odpovídá normálnímu rozdělení, ale špičatost cca 5 - výrazně vyšší než u normálního rozdělení (špičatost 3)
+
+
+
+		# 9:  Určete predikci o h kroků dopředu buď užitím předchozích kroků nebo pomocí SARIMA.
+		predictionTime = 365		# Predict 1 year ahead
+		forecast, conf_int = model.predict(n_periods=predictionTime, return_conf_int=True)
+
+		# Plot the forecast
+		utils.PlotForecastARMA(valuesDetrendedSliced, forecast, conf_int, title = "Predikce ARMA(2,1) pro diferencovaná data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
+		utils.OrigDataPlotForecastARMA(time, valuesTransformed, forecast, conf_int, title = "Predikce ARMA(2,1) pro transformovaná data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 
 
 if __name__ == "__main__":
