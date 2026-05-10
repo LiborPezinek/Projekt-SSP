@@ -6,8 +6,10 @@
 ## 		  Původní dataset obsahuje data od roku 1981 do roku 2025
 
 import numpy as np
+import pandas as pd
 from statsmodels.tsa.seasonal import seasonal_decompose
 import matplotlib.pyplot as plt
+from scipy.stats import boxcox
 
 import utils
 
@@ -33,7 +35,7 @@ def main() -> None:
 	# 7:  Testem náhodnosti ověřte, zda získaná rezidua jsou IID a zda jsou normální
 	# 8:  Vykreslete autokorelační funkci a parciální autokorelační funkci reziduí a pokuste se určit vhodný ARMA model
 	# 9:  Určete predikci o h kroků dopředu buď užitím předchozích kroků nebo pomocí SARIMA.
-	task = 6
+	task = 3
 
 	# 2:  Data vykreslete, posuďte autokovarianční funkci.
 	if task == 2:
@@ -45,14 +47,29 @@ def main() -> None:
 
 	# 3:  Ověřte, zda je třeba provést transformaci stabilizující rozptyl a případně ji proveďte.  
 	if task == 3:
+		# H0: The variances of the two groups are equal (no need for transformation)
+		# H1: The variances of the two groups are not equal (transformation may be needed)
+		utils.LeveneTest(values[:len(values)//2], values[len(values)//2:])		# Test for equal variances between first and second half of the data
+
 		# Calculate and plot rolling variance - to know whether to transform or not
 		utils.CalcAndPlotRollingVariance(time, values, title = "Klouzavý rozptyl průtokových dat")
 
+		# Box-Cox transformation to find optimal lambda for variance stabilization
+		valuesBoxCox, lam = boxcox(values)	# g(x) =  1 - 1/x
+		print("Optimal lambda for Box-Cox transformation:", lam)
+		valuesBoxCox = pd.Series(valuesBoxCox, index=values.index)		# Convert back to pandas Series for easier handling		
+
+		# Log-transform the data to stabilize variance
+		# valuesLog = np.log(values)
+
 		# Plot log transformed data
-		utils.VisualiseData(time, valuesLog, ylabel = "Logaritmus průtoku (log(m³/s))", title = "Transformovaná data (logaritmus) ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
+		utils.VisualiseData(time, valuesBoxCox, ylabel = "Průtok", title = "Transformovaná data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
+
+		# Re-test for equal variances after transformation
+		utils.LeveneTest(valuesBoxCox[:len(valuesBoxCox)//2], valuesBoxCox[len(valuesBoxCox)//2:])
 
 		# Re-calculate and plot rolling variance for transformed data
-		utils.CalcAndPlotRollingVariance(time, valuesLog, title = "Klouzavý rozptyl logaritmovaných průtokových dat")
+		utils.CalcAndPlotRollingVariance(time, valuesBoxCox, title = "Klouzavý rozptyl logaritmovaných průtokových dat")
 
 	# 4:  Odstraňte trend vhodnou metodou.
 	if task == 4:

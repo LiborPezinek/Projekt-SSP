@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from statsmodels.tsa.stattools import acovf
 from scipy.signal import periodogram
+from scipy.stats import levene
 
 
 def LoadCsvData(csvFilePath = None) -> tuple[pd.Series, pd.Series]:
@@ -81,6 +82,14 @@ def CalcAndPlotRollingVariance(time, values, title) -> None:
 	plt.xlabel("Time (days)")
 	plt.ylabel("Variance")
 	plt.show()
+
+def LeveneTest(values1, values2) -> None:
+		# H0: The variances of the two groups are equal (no need for transformation)
+		# H1: The variances of the two groups are not equal (transformation may be needed)
+		_, p = levene(values1, values2)		# Test for equal variances between 2 sets of data
+		print(p)	# If p-value is less than 0.05, we reject the null hypothesis of equal variances
+		print  ("Variances are equal, no transformation needed" if p >= 0.05 else "Variances are not equal, transformation may be needed")
+	
 
 def CalcAndPlotPeriodogram(values, title) -> None:
 	freqs, power = periodogram(values)

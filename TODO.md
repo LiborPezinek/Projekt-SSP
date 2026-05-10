@@ -1,3 +1,3 @@
 # TODO
 
-- [ ] Vizualizace
+- Obrázky vedle sebe - prezentace
