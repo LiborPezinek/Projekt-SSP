@@ -7,9 +7,11 @@
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+
 from scipy.stats import boxcox
 from statsmodels.tsa.seasonal import seasonal_decompose
+from statsmodels.stats.diagnostic import acorr_ljungbox, lilliefors
+from statsmodels.stats.stattools import jarque_bera
 
 import utils
 
@@ -34,7 +36,7 @@ def main() -> None:
 	# 7:  Testem náhodnosti ověřte, zda získaná rezidua jsou IID a zda jsou normální
 	# 8:  Vykreslete autokorelační funkci a parciální autokorelační funkci reziduí a pokuste se určit vhodný ARMA model
 	# 9:  Určete predikci o h kroků dopředu buď užitím předchozích kroků nebo pomocí SARIMA.
-	task = 6
+	task = 8
 
 	# 2:  Data vykreslete, posuďte autokovarianční funkci.
 	if task == 2:
@@ -94,16 +96,39 @@ def main() -> None:
 		# Plot the decomposed components
 		mHat = seasonalDecompose.trend
 		sHat = seasonalDecompose.seasonal
-		rHat = seasonalDecompose.resid
+		residuals = seasonalDecompose.resid
 
 		# Plot trend, seasonal and residual components
 		utils.VisualiseData(time[182:len(valuesTransformed)-182], mHat, ylabel = "Trend", title = "Trendová složka průtokových dat ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 		utils.VisualiseData(time[182:len(valuesTransformed)-182], sHat, ylabel = "Sezónní složka", title = "Sezónní složka průtokových dat ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
-		utils.VisualiseData(time[182:len(valuesTransformed)-182], rHat, ylabel = "Residuální složka", title = "Residuální složka průtokových dat ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
+		utils.VisualiseData(time[182:len(valuesTransformed)-182], residuals, ylabel = "Residuální složka", title = "Residuální složka průtokových dat ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 
 	# 7: Testem náhodnosti ověřte, zda získaná rezidua jsou IID a zda jsou normální
 	if task == 7:
-		azfasfa
+		residuals = seasonalDecompose.resid.dropna()		# Testovaná residua
+
+		# Ověření, že residua jsou IID
+		ljungBoxTest = acorr_ljungbox(residuals, return_df=True, period = 365)
+		print("Ljung-Box test:")
+		print(ljungBoxTest)
+		print("Residua jsou IID" if ljungBoxTest.iloc[0, 1] > 0.05 else "Residua nejsou IID")
+		print()
+
+		# Ověření normality residuí
+		jb_stat, jb_pvalue, _, _= jarque_bera(residuals)
+		print(f"Jarque-Bera: jb_stat={jb_stat:.4f}, jb_pvalue={jb_pvalue:.4f}")
+		print("Residua jsou normální" if jb_pvalue > 0.05 else "Residua nejsou normální")
+		print()
+
+		stat, p = lilliefors(residuals)
+		print(f"Lilliefors test: stat={stat:.4f}, p={p:.4f}")
+		print("Residua jsou normální" if p > 0.05 else "Residua nejsou normální")
+
+		# QQ plot pro vizuální posouzení normality
+		utils.PlotQQ(residuals, title = "QQ plot residuí pro průtoková data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
+
+		## Residua nejsou ani IID, ani normální, QQ graf reziduí ukazuje přibližnou shodu s normálním rozdělením, 
+		# největší odchylky se objevují v krajních kvantilech - pravděpodobně vlivem extrémních průtokových hodnot (např. povodně).
 
 if __name__ == "__main__":
 	main()

@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 from statsmodels.tsa.stattools import acovf
 from scipy.signal import periodogram
+import scipy.stats as stats
+
 
 
 def LoadCsvData(csvFilePath = None) -> tuple[pd.Series, pd.Series]:
@@ -103,3 +105,10 @@ def CalcAndPlotPeriodogram(values, title) -> None:
 	plt.show()
 
 	return periods, power
+
+def PlotQQ(values, title) -> None:
+	fig = plt.figure(figsize=(6, 6))
+	ax = fig.add_subplot(111)
+	stats.probplot(values, dist="norm", plot=ax)
+	ax.set_title(title)
+	plt.show()
