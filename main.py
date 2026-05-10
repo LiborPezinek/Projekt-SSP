@@ -21,7 +21,7 @@ def main() -> None:
 	## Předpočítané operace na datech, abychom mohli volat pouze příslušný blok kódu pro daný úkol
 	valuesBoxCox, lam = boxcox(values)						  		# Transform the data using Box-Cox transformation to stabilize variance
 	valuesBoxCox = pd.Series(valuesBoxCox, index=values.index) # Convert back to pandas Series for easier handling
-	valuesDetrended = valuesBoxCox.diff().dropna() 			  		# Difference the data to detrend (and also remove seasonality)
+	valuesDetrended = valuesBoxCox.diff().dropna() 			  		# Difference the data to detrend
 	trend = valuesBoxCox.rolling(window=365).mean().dropna()  		# Calculate the trend using a rolling mean with a window of 365 days (1 year)
 
 	# 2:  Data vykreslete, posuďte autokovarianční funkci.
@@ -32,7 +32,7 @@ def main() -> None:
 	# 7:  Testem náhodnosti ověřte, zda získaná rezidua jsou IID a zda jsou normální
 	# 8:  Vykreslete autokorelační funkci a parciální autokorelační funkci reziduí a pokuste se určit vhodný ARMA model
 	# 9:  Určete predikci o h kroků dopředu buď užitím předchozích kroků nebo pomocí SARIMA.
-	task = 3
+	task = 5
 
 	# 2:  Data vykreslete, posuďte autokovarianční funkci.
 	if task == 2:
@@ -59,14 +59,21 @@ def main() -> None:
 
 	# 4:  Odstraňte trend vhodnou metodou.
 	if task == 4:
+		#  trend = valuesBoxCox.rolling(window=365).mean().dropna()
 		# Show trend
-		utils.VisualiseData(time[365:], trend, ylabel = "Trend (log(m³/s))", title = "Trend logaritmovaných průtokových dat ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
+		utils.VisualiseData(time[364:], trend, ylabel = "Trend", title = "Trend transformovaných průtokových dat ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
+		
+		# Plot trend and data together
+		utils.VisualiseDataAndTrend(time, valuesBoxCox, trend, ylabel = "Průtok", title = "Transformovaná data a trend ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 
+		# valuesDetrended = valuesBoxCox.diff().dropna()
 		# Plot detrended data
-		utils.VisualiseData(time[1:], valuesDetrended, ylabel = "Diferencovaná průtoková data (log(m³/s))", title = "Diferencovaná data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
+		utils.VisualiseData(time[1:], valuesDetrended, ylabel = "Diferencovaná průtoková data", title = "Diferencovaná data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 	
 		# Calculate and plot autocovariance function for seasonally differenced data
 		utils.CalcAndPlotACVF(time[1:], valuesDetrended, title = "Autocovarianční funkce pro diferencovaná data")
+		
+		## Diferenciace lepší výsledky oproti odečtení moving average
 
 	# 5:  Identifikujte periodu sezónní složky (z podstaty dat, ověřte periodogramem)
 	if task == 5:

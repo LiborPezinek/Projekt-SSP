@@ -32,9 +32,21 @@ def VisualiseData(time, values, ylabel, title) -> None:
 	plt.tight_layout()
 	plt.show()
 
+def VisualiseDataAndTrend(time, values, trend, ylabel, title) -> None:
+		fig, ax = plt.subplots(figsize=(12, 6))
+		ax.plot(time, values, label="Transformovaná data", linewidth=0.8)
+		ax.plot(time[364:], trend, label="Trend (365denní klouzavý průměr)", linewidth=2.0)
+		ax.set_xlabel("Datum")
+		ax.set_ylabel(ylabel)
+		ax.set_title(title)
+		ax.legend()
+		ax.grid(True, alpha=0.3)
+		fig.tight_layout()
+		plt.show()
+
 def CalcAndPlotACVF(time, values, title) -> None:
-	acvf = acovf(values, fft=True)
-	lags = time[:len(acvf)]
+	acvf = acovf(values[366:], fft=True)
+	lags = time[366:366+len(acvf)]
 
 	# Plot positive and negative ACVF values with different colors.
 	acvf_pos = np.where(acvf >= 0, acvf, np.nan)
