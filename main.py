@@ -18,14 +18,15 @@ def main() -> None:
 	# Load data
 	time, values = utils.LoadCsvData("data/QD_109000_Data.csv")
 
-	# Log-transform the data to stabilize variance
-	valuesLog = np.log(values)
+	## Předpočítané operace na datech, abychom mohli volat pouze příslušný blok kódu pro daný úkol
+	# transform the data using Box-Cox transformation to stabilize variance
+	valuesBoxCox, lam = boxcox(values)
 
 	# Difference the data to detrend (and also remove seasonality)
-	valuesDetrended = values.diff().dropna()
+	valuesDetrended = valuesBoxCox.diff().dropna()
 
 	# Calculate the trend using a rolling mean with a window of 365 days (1 year)
-	trend = valuesLog.rolling(window=365).mean().dropna()
+	trend = valuesBoxCox.rolling(window=365).mean().dropna()
 
 	# 2:  Data vykreslete, posuďte autokovarianční funkci.
 	# 3:  Ověřte, zda je třeba provést transformaci stabilizující rozptyl a případně ji proveďte.  
@@ -51,7 +52,7 @@ def main() -> None:
 		utils.CalcAndPlotRollingVariance(time, values, title = "Klouzavý rozptyl průtokových dat")
 
 		# Box-Cox transformation to find optimal lambda for variance stabilization
-		valuesBoxCox, lam = boxcox(values)	# g(x) =  1 - 1/x
+		# valuesBoxCox, lam = boxcox(values)	# g(x) =  1 - 1/x
 		print("Optimal lambda for Box-Cox transformation:", lam)
 		valuesBoxCox = pd.Series(valuesBoxCox, index=values.index)		# Convert back to pandas Series for easier handling
 
@@ -81,7 +82,7 @@ def main() -> None:
 
 	# 6:  Odhadněte trendovou a sezónní složku
 	if task == 6:
-		decompTSR = seasonal_decompose(valuesLog, model='additive', period=365)
+		decompTSR = seasonal_decompose(valuesBoxCox, model='additive', period=365)
 		decompTSR.plot()
 		plt.show()
 
