@@ -163,8 +163,11 @@ def main() -> None:
 		forecast, conf_int = model.predict(n_periods=predictionTime, return_conf_int=True)
 
 		# Plot the forecast
-		utils.PlotForecastARMA(valuesDetrendedSliced, forecast, conf_int, title = "Predikce ARMA(2,1) pro diferencovaná data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
-
+		# utils.PlotForecastARMA(valuesDetrendedSliced, forecast, conf_int, title = "Predikce ARMA(2,1) pro diferencovaná data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
+		# Predikce pomocí předchozích kroků
+		mHat = seasonalDecompose.trend
+		sHat = seasonalDecompose.seasonal
+		utils.PlotForecastManual(mHat, sHat, values, valuesTransformedSliced, predictionTime, lam, title = "Predikce pomocí trendu, a sezónní složky pro transformovaná data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 
 if __name__ == "__main__":
 	main()

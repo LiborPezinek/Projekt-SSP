@@ -162,36 +162,29 @@ def PlotForecastARMA(valuesDetrended, forecast, conf_int, title) -> None:
 	plt.tight_layout()
 	plt.show()
 
-def OrigDataPlotForecastARMA(time, values, preDiffLastVal, forecast, conf_int, lam, title) -> None:
-	predictionIndices = np.arange(len(values) + 1, len(values) + len(forecast) + 1)
+def PlotForecastManual(mHat, sHat, values, valuesTransformedSliced, predictionTime, lam, title) -> None:
+	valuesSliced = values[182:len(values)-182]
 
-	dediffForecast = np.concatenate([[preDiffLastVal], preDiffLastVal + np.cumsum(forecast)])
-	dediffLowerBound = np.concatenate([[preDiffLastVal + conf_int[0, 0]], preDiffLastVal + np.cumsum(conf_int[:, 0])])
-	dediffUpperBound = np.concatenate([[preDiffLastVal + conf_int[0, 1]], preDiffLastVal + np.cumsum(conf_int[:, 1])])
+	predictionIndices = np.arange(len(valuesTransformedSliced) + 1, len(valuesTransformedSliced) + predictionTime + 1)
 
-	forecastOrig = inv_boxcox(dediffForecast, lam)
-	lowerBound = inv_boxcox(dediffLowerBound, lam)
-	upperBound = inv_boxcox(dediffUpperBound, lam)
+	prediction = np.zeros(len(predictionIndices))
+	for i in range(len(prediction)):
+		prediction[i] = mHat[(len(mHat)-1) -len(predictionIndices) + i] + sHat[(len(sHat)-1) -182 - len(predictionIndices) + i]
+	predictionOrig = inv_boxcox(prediction, lam)
 
 	plt.figure(figsize=(12, 5))
 	plt.axhline(0, color="black", linewidth=0.8)
-	plt.plot(values, label="Observed Data")
-	plt.plot([predictionIndices[0] - 1, predictionIndices[0]], 
-             [values.values[-1], forecastOrig[0]], color="red")
-	plt.plot(predictionIndices, forecastOrig[:len(predictionIndices)], color="red", label="Prediction")
-
-	plt.fill_between(predictionIndices,
-                     lowerBound[:len(predictionIndices)],   # lower bound
-                     upperBound[:len(predictionIndices)],   # upper bound
-                     color="red", alpha=0.2, label="95% Confidence Interval")
-
+	plt.plot(valuesSliced, label="Observed Data", 
+	         color="#1D9E75", linewidth=1.5)
+	plt.plot([predictionIndices[0] - 1, predictionIndices[0]],
+	         [valuesSliced[len(valuesSliced)-1], predictionOrig[0]], color="red")
+	plt.plot(predictionIndices, predictionOrig, label="Prediction", color="red")
 	plt.title(title)
-	plt.xlabel("Time [days]")
-	plt.ylabel("")
+	plt.xlabel("Time [months]", fontsize=12)
+	plt.ylabel("E [kWh]", fontsize=12)
 	plt.legend()
 	plt.grid(True, alpha=0.5)
 	plt.tight_layout()
 	plt.show()
-
 
 
