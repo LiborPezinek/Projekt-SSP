@@ -103,12 +103,3 @@ def CalcAndPlotPeriodogram(values, title) -> None:
 	plt.show()
 
 	return periods, power
-
-def CalcSeasonalComponent(values, mHat, period) -> pd.Series:
-	w = np.array(np.zeros(period))
-	denominator = (len(values) - period) / period	# Number of complete periods in the data
-	for j in range(period):
-		w[j] = (1 / denominator) * (values[j::period] - mHat[j::period]).sum()	# Calculate the average deviation from the trend for each position in the period
-	sHat = w - w.mean()	# Center the seasonal component by subtracting the mean to ensure it has zero average over one period
-	sHat = np.tile(sHat, round(denominator))
-	return sHat

@@ -7,7 +7,9 @@
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from scipy.stats import boxcox
+from statsmodels.tsa.seasonal import seasonal_decompose
 
 import utils
 
@@ -17,10 +19,12 @@ def main() -> None:
 	time, values = utils.LoadCsvData("data/QD_109000_Data.csv")
 
 	## Předpočítané operace na datech, abychom mohli volat pouze příslušný blok kódu pro daný úkol
-	valuesTransformed, lam = boxcox(values)						  		# Transform the data using Box-Cox transformation to stabilize variance
-	valuesTransformed = pd.Series(valuesTransformed, index=values.index) # Convert back to pandas Series for easier handling
-	valuesDetrended = valuesTransformed.diff().dropna() 			  		# Difference the data to detrend
-	trend = valuesTransformed.rolling(window=365).mean().dropna()  		# Calculate the trend using a rolling mean with a window of 365 days (1 year)
+	valuesTransformed, lam = boxcox(values)						  								   # Transform the data using Box-Cox transformation to stabilize variance
+	valuesTransformed = pd.Series(valuesTransformed, index=values.index)  # Convert back to pandas Series for easier handling
+	valuesDetrended = valuesTransformed.diff().dropna() 			  							   # Difference the data to detrend
+	trend = valuesTransformed.rolling(window=365).mean().dropna()  								   # Calculate the trend using a rolling mean with a window of 365 days (1 year)
+	valuesTransformedSliced = valuesTransformed[182:len(valuesTransformed)-182]	   # Slice the transformed data to match the length of the trend (removing the edges where the rolling mean is not defined)
+	seasonalDecompose = seasonal_decompose(valuesTransformedSliced, model='additive', period=365)  # Decompose Xt = mt + st + Yt 
 
 	# 2:  Data vykreslete, posuďte autokovarianční funkci.
 	# 3:  Ověřte, zda je třeba provést transformaci stabilizující rozptyl a případně ji proveďte.  
@@ -84,15 +88,22 @@ def main() -> None:
 
 	# 6:  Odhadněte trendovou a sezónní složku
 	if task == 6:
-		# Centered moving average: 0.5*x[i] + x[i+1] + ... + x[i+period-1] + 0.5*x[i+period]
-		mHat = valuesTransformed[182:len(valuesTransformed)-182].rolling(window=365, center=True).mean().dropna()
-		sHat = utils.CalcSeasonalComponent(valuesTransformed[364:len(valuesTransformed)-364], mHat, period=365)
+		# Decompose Xt = mt + st + Yt 
+		# seasonalDecompose = seasonal_decompose(valuesTransformedSliced, model='additive', period=365)
 
-		print("Size of mHat:", len(mHat), "Size of sHat:", len(sHat))
+		# Plot the decomposed components
+		mHat = seasonalDecompose.trend
+		sHat = seasonalDecompose.seasonal
+		rHat = seasonalDecompose.resid
 
-		utils.VisualiseData(time[364:len(mHat) + 364], mHat, ylabel = "Trend", title = "Trend průtokových dat ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
-		utils.VisualiseData(time[364:len(sHat) + 364], sHat, ylabel = "Sezónní složka", title = "Sezónní složka průtokových dat ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
+		# Plot trend, seasonal and residual components
+		utils.VisualiseData(time[182:len(valuesTransformed)-182], mHat, ylabel = "Trend", title = "Trendová složka průtokových dat ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
+		utils.VisualiseData(time[182:len(valuesTransformed)-182], sHat, ylabel = "Sezónní složka", title = "Sezónní složka průtokových dat ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
+		utils.VisualiseData(time[182:len(valuesTransformed)-182], rHat, ylabel = "Residuální složka", title = "Residuální složka průtokových dat ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 
+	# 7: Testem náhodnosti ověřte, zda získaná rezidua jsou IID a zda jsou normální
+	if task == 7:
+		azfasfa
 
 if __name__ == "__main__":
 	main()
