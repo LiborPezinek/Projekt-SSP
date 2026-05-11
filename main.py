@@ -190,5 +190,7 @@ def main() -> None:
 		sHat = seasonalDecompose.seasonal
 		utils.PlotForecastManual(mHat, sHat, values, valuesTransformedSliced, predictionTime, lam, title = "Predikce pomocí trendu, a sezónní složky pro transformovaná data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 
+		## predikce pomocí arma modelu konstantní - může být způsobenou volbou nesezónního modelu na sezónní data
+
 if __name__ == "__main__":
 	main()
