@@ -140,13 +140,13 @@ def FindOptimalArma(valuesDetrended):
 	)
 	return model
 
-def PlotForecastARMA(valuesDetrended, forecast, conf_int, title) -> None:
-	predictionIndices = np.arange(len(valuesDetrended) + 1, len(valuesDetrended) + len(forecast) + 1)
+def PlotForecastARMA(valuesDetrendedSliced, forecast, conf_int, title) -> None:
+	predictionIndices = np.arange(len(valuesDetrendedSliced) + 1, len(valuesDetrendedSliced) + len(forecast) + 1)
 	plt.figure(figsize=(12, 5))
 	plt.axhline(0, color="black", linewidth=0.8)
-	plt.plot(valuesDetrended, label="Observed Data")
+	plt.plot(valuesDetrendedSliced, label="Observed Data")
 	plt.plot([predictionIndices[0] - 1, predictionIndices[0]], 
-             [valuesDetrended.values[-1], forecast.values[0]], color="red")
+             [valuesDetrendedSliced.values[-1], forecast.values[0]], color="red")
 	plt.plot(predictionIndices, forecast, color="red", label="Prediction")
 
 	plt.fill_between(predictionIndices,
@@ -157,6 +157,29 @@ def PlotForecastARMA(valuesDetrended, forecast, conf_int, title) -> None:
 	plt.title(title)
 	plt.xlabel("Time [days]")
 	plt.ylabel("")
+	plt.legend()
+	plt.grid(True, alpha=0.5)
+	plt.tight_layout()
+	plt.show()
+
+def OrigDataPlotForecastARMA(values, preDiffLastVal, forecast, lam, title) -> None:
+	valuesSliced = values[182:len(values)-182]
+
+	predictionIndices = np.arange(len(valuesSliced) + 1, len(valuesSliced) + len(forecast) + 1)
+
+	dediffForecast = np.concatenate([[preDiffLastVal], preDiffLastVal + np.cumsum(forecast)])
+	forecastOrig = inv_boxcox(dediffForecast, lam)
+
+	plt.figure(figsize=(12, 5))
+	plt.axhline(0, color="black", linewidth=0.8)
+	plt.plot(valuesSliced[:len(valuesSliced)-182], label="Observed Data")
+	plt.plot([predictionIndices[0] - 1, predictionIndices[0]], 
+             [valuesSliced[len(valuesSliced)-1], forecastOrig[0]], color="red")
+	plt.plot(predictionIndices, forecastOrig[:len(predictionIndices)], color="red", label="Prediction")
+
+	plt.title(title)
+	plt.xlabel("Time [days]", fontsize=12)
+	plt.ylabel("Flow", fontsize=12)
 	plt.legend()
 	plt.grid(True, alpha=0.5)
 	plt.tight_layout()
@@ -174,17 +197,14 @@ def PlotForecastManual(mHat, sHat, values, valuesTransformedSliced, predictionTi
 
 	plt.figure(figsize=(12, 5))
 	plt.axhline(0, color="black", linewidth=0.8)
-	plt.plot(valuesSliced, label="Observed Data", 
-	         color="#1D9E75", linewidth=1.5)
+	plt.plot(valuesSliced[182:len(valuesSliced)-181], label="Original data")
 	plt.plot([predictionIndices[0] - 1, predictionIndices[0]],
 	         [valuesSliced[len(valuesSliced)-1], predictionOrig[0]], color="red")
 	plt.plot(predictionIndices, predictionOrig, label="Prediction", color="red")
 	plt.title(title)
-	plt.xlabel("Time [months]", fontsize=12)
-	plt.ylabel("E [kWh]", fontsize=12)
+	plt.xlabel("Time [days]", fontsize=12)
+	plt.ylabel("Flow", fontsize=12)
 	plt.legend()
 	plt.grid(True, alpha=0.5)
 	plt.tight_layout()
 	plt.show()
-
-

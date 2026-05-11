@@ -145,11 +145,11 @@ def main() -> None:
 		plt.show()
 
 
-		valuesDetrendedSliced = valuesDetrended[:len(valuesDetrended)-364]
+		valuesDetrendedSliced = valuesDetrended[:len(valuesDetrended)-365]
 		model = utils.FindOptimalArma(valuesDetrendedSliced)
 		print(model.summary())
 
-		## Z výpočetních důvodů omezení na ARMA bez sezónní složky, nalezený optimální model ARMA(2,1) s AIC = -35683.981
+		## Z výpočetních důvodů omezení na ARMA bez sezónní složky, nalezený optimální model ARMA(2,1)
 		## ACF klesá pomalu, PACF má významné peaky pro lagy 1 a 2, což by napovídalo model AR(2).
 		## PACF má ale dále ještě malé, ale významné peaky. To naznačuje, že bude vhodnější model ARMA(2,1) - což potvrzuje i výsledek z auto_arima.
 		## Koeficienty modelu ARMA(2,1) jsou všechny významné.
@@ -164,6 +164,8 @@ def main() -> None:
 
 		# Plot the forecast
 		# utils.PlotForecastARMA(valuesDetrendedSliced, forecast, conf_int, title = "Predikce ARMA(2,1) pro diferencovaná data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
+		# utils.OrigDataPlotForecastARMA(values, valuesTransformedSliced.values[-1], forecast, lam, title = "Predikce ARMA(2,1) pro původní data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
+		
 		# Predikce pomocí předchozích kroků
 		mHat = seasonalDecompose.trend
 		sHat = seasonalDecompose.seasonal
