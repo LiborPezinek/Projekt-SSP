@@ -48,38 +48,46 @@ def main() -> None:
 		# Calculate and plot autocovariance function
 		utils.CalcAndPlotACVF(time, values, title = "Autocovarianční funkce pro průtoková data")
 
+	## Pomalý pokles autokorelační funkce indikuje silnou závislost mezi vzdálenými pozorováními.
+	## Pravděpodobně přítomnost trendové nebo sezónní složky.
+
 	# 3:  Ověřte, zda je třeba provést transformaci stabilizující rozptyl a případně ji proveďte.  
 	if task == 3:
 		# Calculate and plot rolling variance - to know whether to transform or not
 		utils.CalcAndPlotRollingVariance(time, values, title = "Klouzavý rozptyl průtokových dat")
 
+		## klouzavý rozptyl není konstantní - vysoký vliv extrémních hodnot (povodně) - proto transformace pro stabilizaci rozptylu vhodná
+
 		# Box-Cox transformation to find optimal lambda for variance stabilization
 		# valuesBoxCox, lam = boxcox(values)	# g(x) =  1 - 1/x
 		print("Optimal lambda for Box-Cox transformation:", lam)
 
-		# Plot log transformed data
-		utils.VisualiseData(time, valuesTransformed, ylabel = "Průtok", title = "Transformovaná data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
+		# Plot transformed data
+		utils.VisualiseData(time, valuesTransformed, ylabel = "Průtok (m³/s)", title = "Transformovaná data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 
 		# Re-calculate and plot rolling variance for transformed data
-		utils.CalcAndPlotRollingVariance(time, valuesTransformed, title = "Klouzavý rozptyl logaritmovaných průtokových dat")
+		utils.CalcAndPlotRollingVariance(time, valuesTransformed, title = "Klouzavý rozptyl transformovaných průtokových dat")
+
+		## Došlo k výraznému vyhlazení rozdílů v rozptylu, klouzavý rozptyl můžeme považovat za přibližně konstantní
 
 	# 4:  Odstraňte trend vhodnou metodou.
 	if task == 4:
-		#  trend = valuesBoxCox.rolling(window=365).mean().dropna()
+		#  trend = valuesTransformed.rolling(window=365).mean().dropna()
 		# Show trend
 		utils.VisualiseData(time[364:], trend, ylabel = "Trend", title = "Trend transformovaných průtokových dat ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 		
 		# Plot trend and data together
-		utils.VisualiseDataAndTrend(time, valuesTransformed, trend, ylabel = "Průtok", title = "Transformovaná data a trend ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
+		utils.VisualiseDataAndTrend(time, valuesTransformed, trend, ylabel = "Průtok (m³/s)", title = "Transformovaná data a trend ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 
-		# valuesDetrended = valuesBoxCox.diff().dropna()
+		# valuesDetrended = valuesTransformed.diff().dropna()
 		# Plot detrended data
 		utils.VisualiseData(time[1:], valuesDetrended, ylabel = "Diferencovaná průtoková data", title = "Diferencovaná data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 	
 		# Calculate and plot autocovariance function for differenced data
 		utils.CalcAndPlotACVF(time[1:], valuesDetrended, title = "Autocovarianční funkce pro diferencovaná data")
 		
-		## Diferenciace lepší výsledky oproti odečtení moving average
+		## K odstranění trendu použita první diference
+		## Autokorelační funkce klesá velmi rychle oproti původním datům, což indikuje úspěšné odstranění trendu.
 
 	# 5:  Identifikujte periodu sezónní složky (z podstaty dat, ověřte periodogramem)
 	if task == 5:
@@ -91,10 +99,11 @@ def main() -> None:
 		utils.CalcAndPlotACVFwithPeriod(time, valuesTransformed, period=peakPeriod, title = "Autocovarianční funkce s vyznačenou periodou 365 dní")
 
 		## Diferencovaná data neukazují smysluplnou periodu, proto periodogram na původních datech.
+		## V periodogramu více výrazných peaků, nejvýraznější pro periodu 365.25 dní - potvrzení roční sezónnosti dat.
+		## V ACVF pro transformovaná data s vyznačenou periodou 365 dní vidíme výrazné peaky pro násobky této periody, což potvrzuje přítomnost roční sezónní složky.
 
 	# 6:  Odhadněte trendovou a sezónní složku
 	if task == 6:
-		# Decompose Xt = mt + st + Yt
 		# seasonalDecompose = seasonal_decompose(valuesTransformedSliced, model='additive', period=365)
 
 		# Plot the decomposed components
@@ -107,6 +116,13 @@ def main() -> None:
 		utils.VisualiseData(time[182:len(valuesTransformed)-182], sHat, ylabel = "Sezónní složka", title = "Sezónní složka průtokových dat ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 		utils.VisualiseData(time[182:len(valuesTransformed)-182], residuals, ylabel = "Residuální složka", title = "Residuální složka průtokových dat ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 
+		seasonalDecompose.plot()
+		plt.show()
+
+		## Trendová a sezónní složka odhadnuty knihovní funkcí - odpovídá řešení ve skriptech
+		## Residua rezidua dopočítána ze vzorce Xt = mt + st + Yt - odpovídá knihovní funkci
+		## V grafu residuí můžeme sledovat přetrvávající trend (a méně výraznou sezónní složku)
+
 	# 7: Testem náhodnosti ověřte, zda získaná rezidua jsou IID a zda jsou normální
 	if task == 7:
 		residuals = seasonalDecompose.resid.dropna()		# Testovaná residua
@@ -117,22 +133,26 @@ def main() -> None:
 		print(ljungBoxTest)
 		print("Residua jsou IID" if ljungBoxTest.iloc[0, 1] > 0.05 else "Residua nejsou IID")
 		print()
+		## H0: Žádná autokorelace až do lagu 730, H1: Autokorelace přítomna pro alespoň jeden lag do 730
 
 		# Ověření normality residuí
 		jb_stat, jb_pvalue, _, _= jarque_bera(residuals)
 		print(f"Jarque-Bera: jb_stat={jb_stat:.4f}, jb_pvalue={jb_pvalue:.4f}")
 		print("Residua jsou normální" if jb_pvalue > 0.05 else "Residua nejsou normální")
 		print()
+		## H0: Residua mají normální rozdělení (šikmost = 0, špičatost = 3), H1: Residua nemají normální rozdělení
 
 		stat, p = lilliefors(residuals)
 		print(f"Lilliefors test: stat={stat:.4f}, p={p:.4f}")
 		print("Residua jsou normální" if p > 0.05 else "Residua nejsou normální")
+		## Alternativa Shapiro-Wilk testu pro větší dataset, H0: Residua mají normální rozdělení, H1: Residua nemají normální rozdělení
 
 		# QQ plot pro vizuální posouzení normality
 		utils.PlotQQ(residuals, title = "QQ plot residuí pro průtoková data ze stanice Vyšší Brod, řeka Vltava (2010-2025)")
 
 		## Residua nejsou ani IID, ani normální, QQ graf reziduí ukazuje přibližnou shodu s normálním rozdělením, 
-		# největší odchylky se objevují v krajních kvantilech - pravděpodobně vlivem extrémních průtokových hodnot (např. povodně).
+		## největší odchylky se objevují v krajních kvantilech - pravděpodobně vlivem extrémních průtokových hodnot (např. povodně).
+		## V qq plotu můžeme sledovat lehký S-pattern - pravděpodobně způsobený větším počtem extrémních hodnot
 
 	# 8:  Vykreslete autokorelační funkci a parciální autokorelační funkci reziduí a pokuste se určit vhodný ARMA model
 	if task == 8 or task == 9:
@@ -143,7 +163,6 @@ def main() -> None:
 		plot_pacf(residuals)
 		plt.title("Parciální autokorelační funkce residuí")
 		plt.show()
-
 
 		valuesDetrendedSliced = valuesDetrended[:len(valuesDetrended)-365]
 		model = utils.FindOptimalArma(valuesDetrendedSliced)

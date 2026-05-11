@@ -39,8 +39,8 @@ def VisualiseData(time, values, ylabel, title) -> None:
 def VisualiseDataAndTrend(time, values, trend, ylabel, title) -> None:
 		fig, ax = plt.subplots(figsize=(12, 6))
 		ax.plot(time, values, label="Transformovaná data", linewidth=0.8)
-		ax.plot(time[364:len(time)-365], trend[:len(trend)-365], label="Trend (365denní klouzavý průměr)", linewidth=2.0)
-		ax.set_xlabel("Datum")
+		ax.plot(time[364:len(time)-365], trend[:len(trend)-365], label="Trend (365-denní klouzavý průměr)", linewidth=2.0)
+		ax.set_xlabel("Date")
 		ax.set_ylabel(ylabel)
 		ax.set_title(title)
 		ax.legend()
@@ -58,7 +58,7 @@ def CalcAndPlotACVF(time, values, title) -> None:
 	plt.stem(lags, acvf_pos, linefmt="tab:blue", markerfmt="bo", basefmt="k-", label="ACVF >= 0")
 	plt.stem(lags, acvf_neg, linefmt="tab:orange", markerfmt="o", basefmt=" ", label="ACVF < 0")
 
-	plt.xlabel("Lag (days)")
+	plt.xlabel("Lag (dny)")
 	plt.ylabel("Autocovariance")
 	plt.title(title)
 	plt.show()
@@ -73,7 +73,7 @@ def CalcAndPlotACVFwithPeriod(time, values, period, title) -> None:
 	plt.stem(lags, acvf_pos, linefmt="tab:blue", markerfmt="bo", basefmt="k-", label="ACVF >= 0")
 	plt.stem(lags, acvf_neg, linefmt="tab:orange", markerfmt="o", basefmt=" ", label="ACVF < 0")
 
-	plt.xlabel("Lag (days)")
+	plt.xlabel("Lag (dny)")
 	plt.ylabel("Autocovariance")
 	plt.title(title)
 	for idx, day in enumerate(pd.date_range(start=lags.iloc[3], end=lags.iloc[-1], freq=f"{period}D")):		# start at 3.1. to compensate for leap years
@@ -83,7 +83,7 @@ def CalcAndPlotACVFwithPeriod(time, values, period, title) -> None:
 			color="red",
 			linestyle="--",
 			alpha=0.4,
-			label=f"Every {period} days" if idx == 0 else None,
+			label=f"Každých {period} dní" if idx == 0 else None,
 		)
 	plt.legend()
 	plt.show()
@@ -92,8 +92,8 @@ def CalcAndPlotRollingVariance(time, values, title) -> None:
 	rollingVar = values.rolling(window=365).var()
 	plt.plot(time, rollingVar)
 	plt.title(title)
-	plt.xlabel("Time (days)")
-	plt.ylabel("Variance")
+	plt.xlabel("Čas (dny)")
+	plt.ylabel("Rozptyl")
 	plt.show()
 
 def CalcAndPlotPeriodogram(values, title) -> None:
@@ -101,8 +101,8 @@ def CalcAndPlotPeriodogram(values, title) -> None:
 	periods = 1 / freqs
 
 	plt.plot(periods, power)
-	plt.xlabel("Period (days)")
-	plt.ylabel("Power")
+	plt.xlabel("Perioda (dny)")
+	plt.ylabel("Intenzita")
 	plt.title(title)
 	plt.show()
 
